@@ -11,6 +11,7 @@
 
 import { analysisConfig } from './config.js';
 import { el, showSkeleton, prepareResultContainer, typewriteText } from './ui.js';
+import { fetchNearbyPOIs } from './overpass.js';
 
 /**
  * performGeoAnalysis(coords)
@@ -36,10 +37,14 @@ export async function performGeoAnalysis(coords){
   let resultText;
 
   try {
-    resultText = await callLlmApi(lat, lng);
+    // Лёгкий запрос к Overpass — не блокирует анализ при сбое (вернёт null)
+    const poi = await fetchNearbyPOIs(lat, lng, analysisConfig.radiusMeters);
+    resultText = await callLlmApi(lat, lng, poi);
   } catch (err) {
     console.error('Ошибка анализа локации:', err);
-    resultText = 'Не удалось получить анализ. Проверьте подключение к API и попробуйте снова.';
+    // ВРЕМЕННО для отладки — покажет реальную причину прямо в UI.
+    // Когда баг найдём, верни обратно общий текст ниже.
+    resultText = `Ошибка: ${err.message}`;
   }
 
   // --- 4) UI: возвращаем кнопку в обычное состояние ---
@@ -66,10 +71,9 @@ export async function performGeoAnalysis(coords){
  *   3. Поправьте endpoint и формат body под выбранного провайдера.
  *   4. Удалите вызов fakeNetworkDelay() и return ниже.
  */
-async function callLlmApi(lat, lng){
-  // Запрос идёт не напрямую в Anthropic, а в нашу же Cloudflare
-  // Pages Function (/api/analyze). Она держит ключ на сервере
-  // и проксирует запрос к Claude — ключ никогда не виден в браузере.
+async function callLlmApi(lat, lng, poi){
+  // Запрос идёт не напрямую в провайдера, а в нашу же Cloudflare
+  // Pages Function (/api/analyze). Она держит ключ на сервере.
   const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -79,14 +83,26 @@ async function callLlmApi(lat, lng){
       systemPrompt: analysisConfig.systemPrompt,
       radiusMeters: analysisConfig.radiusMeters,
       maxTokens: analysisConfig.maxTokens,
-      model: analysisConfig.model
+      model: analysisConfig.model,
+      poiTotal: poi?.total ?? null
     })
   });
 
   if (!response.ok) {
-    throw new Error(`Сервер вернул ошибку: ${response.status}`);
+    // Пытаемся достать details из JSON-ответа функции, чтобы видеть
+    // реальную причину (например, текст ошибки от Anthropic API)
+    let details = '';
+    try {
+      const errBody = await response.json();
+      details = errBody.details || errBody.error || '';
+    } catch (_) { /* ответ был не JSON */ }
+    throw new Error(`HTTP ${response.status} ${details}`.trim());
   }
 
   const data = await response.json();
+  if (data.error) {
+    throw new Error(`${data.error} ${data.details || ''}`.trim());
+  }
   return data.analysisText;
 }
+

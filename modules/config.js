@@ -47,10 +47,10 @@ export const analysisConfig = {
     'или бизнеса. Пиши по-деловому, без воды, на русском языке.',
 
   // Какого провайдера используем: 'claude' | 'gemini' | 'openai' | свой бэкенд
-  provider: 'claude',
+  provider: 'gemini',
 
   // Модель провайдера (пример для Claude; для Gemini — 'gemini-1.5-pro' и т.п.)
-  model: 'claude-sonnet-4-6',
+  model: 'gemini-1.5-flash',
 
   // Радиус анализа в метрах — пригодится, если будете подмешивать данные с карт/POI API
   radiusMeters: 800,
@@ -61,3 +61,19 @@ export const analysisConfig = {
   // Скорость эффекта "печатающейся машинки" (мс на символ)
   typewriterSpeedMs: 14
 };
+
+/**
+ * themes
+ * ---------------------------------------------------------------
+ * Готовые наборы CSS-переменных. Переключение темы просто меняет
+ * атрибут data-theme на <html> — сами значения объявлены в
+ * index.html через CSS-селекторы [data-theme="..."].
+ * Здесь храним только список и подписи для UI-переключателя.
+ */
+export const themes = [
+  { id: 'light',   label: 'Светлая' },
+  { id: 'dark',    label: 'Тёмная' },
+  { id: 'evening', label: 'Вечерняя' }
+];
+
+export const THEME_STORAGE_KEY = 'geointel-theme';

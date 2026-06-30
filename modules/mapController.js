@@ -13,6 +13,7 @@ import { el, resetAnalysisBlock } from './ui.js';
 let map = null;
 let selectedMarker = null;
 let currentSelection = null; // { lat, lng } — текущая выбранная точка
+let routeModeActive = false; // когда true, клики идут в routeBuilder, а не в анализ
 
 /** Создаёт и возвращает экземпляр карты MapLibre */
 export function initMap(){
@@ -23,13 +24,29 @@ export function initMap(){
     style: MAP_STYLE,
     center: [initialView.lng, initialView.lat],
     zoom: initialView.zoom,
-    attributionControl: { compact: true }
+    attributionControl: { compact: true },
+    // нужно для шеринг-карточки: позволяет делать map.getCanvas().toDataURL()
+    preserveDrawingBuffer: true
   });
 
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
   map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
   return map;
+}
+
+/** Возвращает текущий экземпляр карты — нужен другим модулям (route, share) */
+export function getMap(){
+  return map;
+}
+
+/** Включает/выключает режим построения маршрута (блокирует обычный выбор точки) */
+export function setRouteMode(active){
+  routeModeActive = active;
+}
+
+export function isRouteModeActive(){
+  return routeModeActive;
 }
 
 /** Возвращает текущую выбранную локацию ({lat, lng} или null) */
@@ -94,6 +111,10 @@ function syncViewToUrl(){
  */
 export function bindMapEvents(onLocationSelected){
   map.on('click', (e) => {
+    // в режиме построения маршрута клики обрабатывает routeBuilder.js,
+    // обычный анализ локации в этот момент не запускаем
+    if (routeModeActive) return;
+
     const { lat, lng } = e.lngLat;
     selectLocation(lat, lng);
     onLocationSelected({ lat, lng });

@@ -16,6 +16,12 @@ export const el = {
   runBtn: document.getElementById('runAnalysisBtn'),
   runBtnLabel: document.getElementById('runBtnLabel'),
   shareBtn: document.getElementById('shareBtn'),
+  shareImageBtn: document.getElementById('shareImageBtn'),
+  themeBtn: document.getElementById('themeBtn'),
+  themeLabel: document.getElementById('themeLabel'),
+  routeToggleBtn: document.getElementById('routeToggleBtn'),
+  routeClearBtn: document.getElementById('routeClearBtn'),
+  routeDistance: document.getElementById('routeDistance'),
   toast: document.getElementById('toast'),
   toastMessage: document.getElementById('toastMessage')
 };
