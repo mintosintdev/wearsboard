@@ -77,3 +77,65 @@ export const themes = [
 ];
 
 export const THEME_STORAGE_KEY = 'geointel-theme';
+
+/**
+ * BASE_STYLES
+ * ---------------------------------------------------------------
+ * Набор переключаемых базовых карт. Все растровые, без токенов API.
+ * 'carto' — используется как стиль по умолчанию (MAP_STYLE выше).
+ */
+export const BASE_STYLES = [
+  { id: 'carto', label: 'Минимал', style: MAP_STYLE },
+  {
+    id: 'osm',
+    label: 'OSM',
+    style: {
+      version: 8,
+      sources: {
+        osm: {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '&copy; OpenStreetMap contributors'
+        }
+      },
+      layers: [{ id: 'osm-layer', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 }]
+    }
+  },
+  {
+    id: 'satellite',
+    label: 'Спутник',
+    style: {
+      version: 8,
+      sources: {
+        esri: {
+          type: 'raster',
+          tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+          tileSize: 256,
+          attribution: 'Tiles &copy; Esri'
+        }
+      },
+      layers: [{ id: 'esri-layer', type: 'raster', source: 'esri', minzoom: 0, maxzoom: 19 }]
+    }
+  },
+  {
+    id: 'dark',
+    label: 'Тёмная карта',
+    style: {
+      version: 8,
+      sources: {
+        cartoDark: {
+          type: 'raster',
+          tiles: [
+            'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+            'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+            'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          ],
+          tileSize: 256,
+          attribution: '&copy; CARTO &copy; OpenStreetMap contributors'
+        }
+      },
+      layers: [{ id: 'carto-dark-layer', type: 'raster', source: 'cartoDark', minzoom: 0, maxzoom: 20 }]
+    }
+  }
+];

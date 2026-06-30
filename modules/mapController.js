@@ -6,7 +6,7 @@
  * ---------------------------------------------------------------
  */
 
-import { DEFAULT_VIEW, MAP_STYLE } from './config.js';
+import { DEFAULT_VIEW, MAP_STYLE, BASE_STYLES } from './config.js';
 import { UrlState } from './urlState.js';
 import { el, resetAnalysisBlock } from './ui.js';
 
@@ -14,6 +14,8 @@ let map = null;
 let selectedMarker = null;
 let currentSelection = null; // { lat, lng } — текущая выбранная точка
 let routeModeActive = false; // когда true, клики идут в routeBuilder, а не в анализ
+let basemapIndex = 0;
+let basemapSwitchHandlers = []; // несколько модулей могут подписаться на смену стиля карты
 
 /** Создаёт и возвращает экземпляр карты MapLibre */
 export function initMap(){
@@ -38,6 +40,34 @@ export function initMap(){
 /** Возвращает текущий экземпляр карты — нужен другим модулям (route, share) */
 export function getMap(){
   return map;
+}
+
+/**
+ * cycleBasemap()
+ * ---------------------------------------------------------------
+ * Переключает на следующую базовую карту (OSM / спутник / тёмная / минимал).
+ * При смене style MapLibre сбрасывает все добавленные слои, поэтому
+ * после загрузки нового стиля вызывается зарегистрированный колбэк
+ * onBasemapSwitched (нужен, чтобы заново нарисовать маршрут/маркер).
+ */
+export function cycleBasemap(){
+  basemapIndex = (basemapIndex + 1) % BASE_STYLES.length;
+  const next = BASE_STYLES[basemapIndex];
+  map.setStyle(next.style);
+
+  map.once('style.load', () => {
+    if (selectedMarker && currentSelection) {
+      setMarker(currentSelection.lat, currentSelection.lng);
+    }
+    basemapSwitchHandlers.forEach(handler => handler());
+  });
+
+  return next.label;
+}
+
+/** Регистрирует колбэк, вызываемый после смены базовой карты (для пересоздания слоёв) */
+export function registerBasemapSwitchHandler(callback){
+  basemapSwitchHandlers.push(callback);
 }
 
 /** Включает/выключает режим построения маршрута (блокирует обычный выбор точки) */

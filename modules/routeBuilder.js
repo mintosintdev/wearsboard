@@ -8,7 +8,7 @@
  * ---------------------------------------------------------------
  */
 
-import { getMap, setRouteMode, isRouteModeActive } from './mapController.js';
+import { getMap, setRouteMode, isRouteModeActive, registerBasemapSwitchHandler } from './mapController.js';
 
 const SOURCE_ID = 'route-source';
 const LINE_LAYER_ID = 'route-line-layer';
@@ -139,3 +139,10 @@ function haversineDistance(a, b){
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
+
+// При смене базовой карты MapLibre удаляет все слои — пересоздаём
+// слой маршрута и восстанавливаем уже нарисованные точки
+registerBasemapSwitchHandler(() => {
+  initRouteLayer();
+  updateRouteLayer();
+});
