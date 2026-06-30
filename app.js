@@ -20,7 +20,7 @@
  */
 
 import { el, showToast } from './modules/ui.js';
-import { initMap, bindMapEvents, getCurrentSelection, getMap } from './modules/mapController.js';
+import { initMap, bindMapEvents, getCurrentSelection, getMap, cycleBasemap } from './modules/mapController.js';
 import { performGeoAnalysis } from './modules/analysis.js';
 import { initTheme, cycleTheme } from './modules/theme.js';
 import {
@@ -31,6 +31,7 @@ import {
   onRouteDistanceChange
 } from './modules/routeBuilder.js';
 import { shareCardNative } from './modules/shareCard.js';
+import { promptUploadGeoJSON, clearCustomLayers } from './modules/customLayers.js';
 
 /* ===========================================================
    ТЕМА — восстанавливаем сохранённый выбор пользователя
@@ -137,4 +138,24 @@ el.routeToggleBtn.addEventListener('click', () => {
 
 el.routeClearBtn.addEventListener('click', () => {
   clearRoute();
+});
+
+/* ===========================================================
+   КНОПКА БАЗОВОЙ КАРТЫ
+=========================================================== */
+el.basemapBtn.addEventListener('click', () => {
+  const label = cycleBasemap();
+  showToast(`Карта: ${label}`);
+});
+
+/* ===========================================================
+   СВОИ СЛОИ (GeoJSON)
+=========================================================== */
+el.uploadLayerBtn.addEventListener('click', () => {
+  promptUploadGeoJSON();
+});
+
+el.clearLayersBtn.addEventListener('click', () => {
+  clearCustomLayers();
+  showToast('Пользовательские слои убраны');
 });
